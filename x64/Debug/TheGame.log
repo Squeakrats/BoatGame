@@ -1,0 +1,35 @@
+﻿Build started 10/10/2014 7:22:39 PM.
+     1>Project "C:\Users\yusef\Documents\Development\C++\TheGame\TheGame\TheGame.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /IF:\C++\boost_1_56_0 /IC:\Users\yusef\Documents\Development\C++\TheGame\TheGame\libs\include /Zi /nologo /W3 /WX- /sdl /Od /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt source\TheGame\main.cpp source\contollers\Controller.cpp source\network\UDPSocket.cpp
+         UDPSocket.cpp
+         main.cpp
+     1>source\TheGame\main.cpp(93): warning C4018: '<' : signed/unsigned mismatch
+     1>source\TheGame\main.cpp(219): warning C4018: '<' : signed/unsigned mismatch
+         GLM: rotate function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
+         Generating Code...
+         Compiling...
+         Controller.cpp
+     1>C:\Program Files (x86)\Windows Kits\8.1\Include\shared\minwindef.h(130): warning C4005: 'APIENTRY' : macro redefinition
+                 C:\Users\yusef\Documents\Development\C++\TheGame\TheGame\libs\include\GLFW\glfw3.h(92) : see previous definition of 'APIENTRY'
+         Generating Code...
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\yusef\Documents\Development\C++\TheGame\x64\Debug\Client.exe" /INCREMENTAL /NOLOGO /LIBPATH:"F:\C++\boost_1_56_0\lib64-msvc-12.0" /LIBPATH:C:\Users\yusef\Documents\Development\C++\TheGame\TheGame\libs\lib ws2_32.lib wsock32.lib assimp.lib opengl32.lib glfw3.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\yusef\Documents\Development\C++\TheGame\x64\Debug\Client.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\yusef\Documents\Development\C++\TheGame\x64\Debug\Client.lib" /MACHINE:X64 x64\Debug\Actor.obj
+         x64\Debug\MeshComponent.obj
+         x64\Debug\Controller.obj
+         x64\Debug\Emitter.obj
+         x64\Debug\Mesh.obj
+         x64\Debug\MeshFactory.obj
+         x64\Debug\Renderer.obj
+         x64\Debug\SceneNode.obj
+         x64\Debug\util.obj
+         x64\Debug\UDPSocket.obj
+         x64\Debug\main.obj
+         x64\Debug\Server.obj
+         x64\Debug\Window.obj
+         TheGame.vcxproj -> C:\Users\yusef\Documents\Development\C++\TheGame\x64\Debug\Client.exe
+     1>Done Building Project "C:\Users\yusef\Documents\Development\C++\TheGame\TheGame\TheGame.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.68

@@ -1,0 +1,75 @@
+/*
+
+WSAData WsaData;
+WSAStartup(MAKEWORD(2, 2), &WsaData);
+gKeyState = 0; //Seriously do somthing with controllers.
+
+if (argc < 2){
+GameEngine::Init(500, 500);
+GameEngine& engine = GameEngine::Get();
+const aiScene* aiscene = importer.ReadFile("assets\\models\\garvey-work-boat.dae", 0);
+MeshFactory meshFactory;
+StrongMeshPtr boatMesh = meshFactory.createMesh(aiscene);
+StrongSceneNodePtr scene = engine.GetScene();
+StrongSideViewActorPtr actor1 = createClientSideViewActor(0, boatMesh);
+scene->AddChild(actor1->GetComponent<MeshComponent>(1));
+engine.AddActor(actor1);
+
+auto last = std::chrono::high_resolution_clock::now();
+while (engine.IsRunning()){
+auto now = std::chrono::high_resolution_clock::now();
+auto dif = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
+if (dif.count() > 17) {
+engine.PollEvents();
+engine.Render();
+last = now;
+}
+
+
+};
+}
+else {
+Socket* udp = new Socket(SOCK_DGRAM, IPPROTO_UDP);
+udp->Init();
+udp->Bind(1338);
+udp->Connect("127.0.0.1", 1337);
+udp->SetBlocking(false);
+
+auto last = std::chrono::high_resolution_clock::now();
+
+UpdatePacket packet;
+packet.numActors = 1;
+packet.actors = new UpdatePacket::Actor[1];
+
+packet.actors[0].actorId = 0;
+packet.actors[0].x = 0;
+packet.actors[0].y = 0;
+packet.actors[0].z = 0;
+
+
+while (1){
+auto now = std::chrono::high_resolution_clock::now();
+auto dif = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
+if (dif.count() > 33) { //possibly do a sleep thing.?????????
+udp->PollEvents();
+udp->On(0, serverHandleInput);
+last = now;
+packet.actors[0].x = cos( now.time_since_epoch().count()/2000000.0 ) * 10.0;
+packet.actors[0].y = sin(now.time_since_epoch().count() / 2000000.0) * 10.0;
+std::stringstream stream;
+unsigned int eventId = 0;
+stream.write((char*) &eventId, sizeof(unsigned int));
+stream.write((char*) &packet, sizeof(unsigned int));
+stream.write((char*) packet.actors, sizeof(UpdatePacket::Actor) * packet.numActors);
+
+
+udp->Send(stream.str().c_str(), 2 * sizeof(unsigned int) + sizeof(UpdatePacket::Actor) * packet.numActors);
+std::cout << "tick!\n";
+}
+
+
+}
+}
+
+exit(0);
+*/
