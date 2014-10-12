@@ -107,135 +107,53 @@ void OnServerFrameUpdate(SocketEvent& event) {
 
 int main(int argc, char** args) {
 
-
-	bool isServer = false;
-	int port = 1337;
-
-	if (argc == 3){
-		std::cout << args[1] << std::endl;
-		if (args[1][0] == 'S'){
-			isServer = true;
-			std::cout << "Launching Server" << std::endl;
-		}
-		else{
-			std::cout << "Launching Client" << std::endl;
-		}
-
-		port = atoi(args[2]);
-		std::cout << "Port : " << port << std::endl;
-	}
-
-
-
-
 	UDPSocket* udp = new UDPSocket();
 	udp->Init();
 	udp->SetBlocking(false);
+	udp->Bind(1337);
+	udp->On(0, OnServerFrameUpdate);
 
 
-	if (!isServer){
-		udp->Bind(port);
-		udp->On(0, OnServerFrameUpdate);
-		int width = 1920, height = 1080;
-		Window window;
-		window.Initialize(width, height, "MyGameEngine");
 
-		Renderer renderer;
-		int program = createProgram("assets/shaders/simpleVertex.glsl", "assets/shaders/simpleFragment.glsl");
+	int width = 1920, height = 1080;
+	Window window;
+	window.Initialize(width, height, "MyGameEngine");
+
+	Renderer renderer;
+	int program = createProgram("assets/shaders/simpleVertex.glsl", "assets/shaders/simpleFragment.glsl");
 
 
-		const aiScene* aiscene = importer.ReadFile("assets/models/garvey-work-boat.dae", 0);
-		StrongMeshPtr boatMesh = MeshFactory::ConvertAiScene(aiscene);
+	const aiScene* aiscene = importer.ReadFile("assets/models/garvey-work-boat.dae", 0);
+	StrongMeshPtr boatMesh = MeshFactory::ConvertAiScene(aiscene);
 
-		StrongControllerPtr controller(new Controller());
-		controller->Initialize(&window);
+	StrongControllerPtr controller(new Controller());
+	controller->Initialize(&window);
 
-		StrongSceneNodePtr scene(new SceneNode());
-		actors[0] = createClientSideViewActor(0, boatMesh);
-		actors[1] = createClientSideViewActor(1, boatMesh);
-		scene->AddChild(actors[0]->GetComponent<MeshComponent>(1));
-		scene->AddChild(actors[1]->GetComponent<MeshComponent>(1));
+	StrongSceneNodePtr scene(new SceneNode());
+	actors[0] = createClientSideViewActor(0, boatMesh);
+	actors[1] = createClientSideViewActor(1, boatMesh);
+	scene->AddChild(actors[0]->GetComponent<MeshComponent>(1));
+	scene->AddChild(actors[1]->GetComponent<MeshComponent>(1));
 
-		auto last = std::chrono::high_resolution_clock::now();
-		while (!window.ShouldClose()){
-			auto  now = std::chrono::high_resolution_clock::now();
-			auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
+	auto last = std::chrono::high_resolution_clock::now();
 
-			if (dt.count() > 17) {
-				now = last;
-				udp->PollEvents();
-				renderer.Render(scene, width, height, program);
-				window.SwapBuffers();
-				window.PollEvents();
-				controller->Send(udp);
-			}
+	while (!window.ShouldClose()){
+		auto  now = std::chrono::high_resolution_clock::now();
+		auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
 
-		};
-	}
-	else{
-
-		udp->Bind(port);
-		udp->On(0, handleSocketInput);
-
-		for (int i = 0; i < 2; i++){
-			actors[i] = StrongSideViewActorPtr(new SideViewActor());
-			actors[i]->SetId(i);
-		}
-
-		auto last = std::chrono::high_resolution_clock::now();
-		while (1){
+		if (dt.count() > 17) {
+			now = last;
 			udp->PollEvents();
-
-			auto now = std::chrono::high_resolution_clock::now();
-			auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
-
-			if (dt.count() > 17) { //temo run server and double fps
-				last = now;
-				for (int i = 0; i < 2; i++){
-					StrongSideViewActorPtr& actor = actors[i];
-					if (actor != nullptr){
-						if (actor->mMovingForward){
-							actor->MoveForward(2);
-						}
-
-						if (actor->mTurningLeft){
-							actor->RotateZ(2);
-						}
-
-						if (actor->mTurningRight){
-							actor->RotateZ(-2);
-						}
-					}
-				}
-				
-
-
-				//SEND THE DAMN GAME STATE PLEASE. 
-				char buffer[500];
-				unsigned int numActors = 2;
-				memcpy(buffer, &numActors, sizeof(numActors));
-
-				GameUpdateActor actorStruct;
-				for (int i = 0; i < numActors; i++){
-					glm::vec3 actorPosition = actors[i]->GetPosition();
-					glm::vec3 actorRotation = actors[i]->GetRotation();
-					actorStruct.actorId = actors[i]->GetId();
-					actorStruct.x = actorPosition.x;
-					actorStruct.y = actorPosition.y;
-					actorStruct.z = actorPosition.z;
-					actorStruct.rx = actorRotation.x;
-					actorStruct.ry = actorRotation.y;
-					actorStruct.rz = actorRotation.z;
-					memcpy(buffer + sizeof(numActors) + sizeof(GameUpdateActor) * i, &actorStruct, sizeof(GameUpdateActor));
-
-				}
-				//generic send to these 2 places. 
-				udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", 1337);
-				udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", 1336);
-				//std::cout << actorRotation.x << actorRotation.y << actorRotation.z << std::endl;
-			}
+			renderer.Render(scene, width, height, program);
+			window.SwapBuffers();
+			window.PollEvents();
+			controller->Send(udp);
 		}
-	}
+
+	};
+
+
+		
 
 
 

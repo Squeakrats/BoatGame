@@ -43,7 +43,7 @@ void Controller::KeyCallback(WindowEvent* event) {
 
 void Controller::Send(UDPSocket* socket) {
 	if (state){
-		socket->SendReliable(0, (const char*)&state, sizeof(state), "127.0.0.1", 1338);
+		socket->SendReliable(0, (const char*)&state, sizeof(state), "23.99.229.169", 1337);
 		state = 0;
 	}
 }
