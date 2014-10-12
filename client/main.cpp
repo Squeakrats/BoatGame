@@ -5,32 +5,30 @@
 void function1(SocketEvent& event) {
 	std::cout << "got an event!" << std::endl;
 }
-int main(int argc, char*argv[]){
-	int port;
-	printf("enter port to bind to\n");
-	std::cin >> port;
 
-	printf("enter the destination IP\n");
-	std::string destIp;
-	std::cin >> destIp;
-	printf("enter the destination Port\n");
-	int destPort;
-	std::cin >> destPort;
+int main(int argc, char*argv[]){
+	if(argc < 4){
+		printf("use it right u dummie\n");
+		exit(1);
+	}
+	int srcPort = atoi(argv[1]);
+	char* destIp = argv[2];
+	int destPort = atoi(argv[3]);
+
 
 	UDPSocket* Socket = new UDPSocket();
 	Socket->Init();
-	Socket->Bind(port);
+	Socket->Bind(srcPort);
 	Socket->SetBlocking(false);
-	printf("listening on port: %i \n", port);
-	std::cout << "Spamming " << destIp << ":" << destPort << std::endl;
 	Socket->On(0, function1);
+
 	auto last = std::chrono::high_resolution_clock::now();
 	while(1){
 		auto now = std::chrono::high_resolution_clock::now();
 		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
 
-		if(ms.count() < 500){
-			Socket->Send(0, "hello", sizeof("hello"), destIp.c_str(), destPort);
+		if(ms.count() > 2000){
+			Socket->Send(0, "hello", sizeof("hello"), destIp, destPort);
 			last = now;
 		}
 		Socket->PollEvents();
