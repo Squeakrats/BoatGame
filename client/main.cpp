@@ -1,6 +1,7 @@
 #include "UDPSocket.h"
 #include <iostream>
 #include <string>
+#include <chrono>
 void function1(SocketEvent& event) {
 	std::cout << "got an event!" << std::endl;
 }
@@ -23,8 +24,16 @@ int main(int argc, char*argv[]){
 	printf("listening on port: %i \n", port);
 	std::cout << "Spamming " << destIp << ":" << destPort << std::endl;
 	Socket->On(0, function1);
+	auto last = std::chrono::high_resolution_clock::now();
 	while(1){
+		auto now = std::chrono::high_resolution_clock::now();
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
+
+		if(ms.count() < 500){
+			Socket->Send(0, "hello", sizeof("hello"), destIp.c_str(), destPort);
+			last = now;
+		}
 		Socket->PollEvents();
-		Socket->Send(0, "hello", sizeof("hello"), destIp.c_str(), destPort);
+		
 	}
 }
