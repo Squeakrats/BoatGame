@@ -87,6 +87,7 @@ struct GameUpdateActor {
 };
 
 void OnServerFrameUpdate(SocketEvent& event) {
+	std::cout << "U" << std::endl;
 	unsigned int numActors;
 	memcpy(&numActors, event.buffer, sizeof(unsigned int));
 	GameUpdateActor* actorStructs = new GameUpdateActor[numActors];

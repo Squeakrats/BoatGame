@@ -30,10 +30,11 @@ struct GameUpdateActor {
 
 StrongSideViewActorPtr actors[2];
 void handleSocketInput(SocketEvent& event){
+	std::cout << "Got client input" << std::endl;
 	int state;// = (int) event.buffer;
 	memcpy(&state, event.buffer, sizeof(state));
 
-	StrongSideViewActorPtr& actor = (ntohs(event.address.sin_port) == 1337) ? actors[0] : actors[1];
+	StrongSideViewActorPtr& actor = actors[0];//(ntohs(event.address.sin_port) == 1337) ? actors[0] : actors[1];
 	
 	if (state & SET_MOVING_FORWARD_TRUE){
 		actor->mMovingForward = true;
