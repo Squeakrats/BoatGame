@@ -127,7 +127,7 @@ int main(int argc, char*argv[]) {
 			}
 			//generic send to these 2 places. 
 			udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "24.240.35.26", sendTo);
-			udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", sendTo);
+			//udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", sendTo);
 			//std::cout << actorRotation.x << actorRotation.y << actorRotation.z << std::endl;
 		}
 	}
