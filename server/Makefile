@@ -1,6 +1,6 @@
 CXX=clang++
 FLAGS=-std=c++11
-LIBRARIES=-lGLEW -lGLU -lGL -lXrandr -lXi -lXrender -ldrm -lXdamage -lXxf86vm -lXext -lX11 -lpthread  -lGLEW -lglfw3 -lassimp
+LIBRARIES=
 LIBRARY_PATH=-L../libs/lib 
 INCLUDE_PATHS=-I../source/ -I../libs/include/
 
