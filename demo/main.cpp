@@ -1,29 +1,31 @@
-#include "iostream"
+#include <iostream>
 #include <vector>
-#include "winsock2.h"
-#include "Ws2tcpip.h"
-#include "../actors/Actor.h"
-#include "../actors/components/MeshComponent.h"
 #include <sstream>
 #include <thread>
-#include "../actors/SideViewActor.h"
+#include <chrono>
 
-#include "GL\glew.h"
-#include "GLFW\glfw3.h"
+
+
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
 #include <assimp/Importer.hpp>  
 #include <assimp/scene.h>  
 #include "glm/gtx/transform.hpp"
 
-#include "../graphics/MeshFactory.h"
-#include "../graphics/Renderer.h"
-#include "../graphics/SceneNode.h"
-#include "../graphics/util.h"
-#include <chrono>
 
-//#include "GameEngine.h"
-#include "../network/UDPSocket.h"
-#include "../windows/Window.h"
-#include "../contollers/Controller.h"
+
+
+#include "Actor.h"
+#include "MeshComponent.h"
+#include "SideViewActor.h"
+#include "MeshFactory.h"
+#include "Renderer.h"
+#include "SceneNode.h"
+#include "util.h"
+#include "UDPSocket.h"
+#include "Window.h"
+#include "Controller.h"
+#include "string.h"
 
 Assimp::Importer importer;
 
@@ -98,15 +100,13 @@ void OnServerFrameUpdate(SocketEvent& event) {
 		actors[actorStruct.actorId]->SetRotation(rotation);
 	}
 	delete actorStructs;
-}
+} 
 
 
 
 
 int main(int argc, char** args) {
 
-	WSAData WsaData;
-	WSAStartup(MAKEWORD(2, 2), &WsaData);
 
 	bool isServer = false;
 	int port = 1337;
@@ -144,7 +144,7 @@ int main(int argc, char** args) {
 		int program = createProgram("assets/shaders/simpleVertex.glsl", "assets/shaders/simpleFragment.glsl");
 
 
-		const aiScene* aiscene = importer.ReadFile("assets\\models\\garvey-work-boat.dae", 0);
+		const aiScene* aiscene = importer.ReadFile("assets/models/garvey-work-boat.dae", 0);
 		StrongMeshPtr boatMesh = MeshFactory::ConvertAiScene(aiscene);
 
 		StrongControllerPtr controller(new Controller());
