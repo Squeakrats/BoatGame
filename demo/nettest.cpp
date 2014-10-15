@@ -15,7 +15,6 @@ int main(int argc, char*argv[]){
 	char* destIp = argv[2];
 	int destPort = atoi(argv[3]);
 
-
 	UDPSocket* Socket = new UDPSocket();
 	Socket->Init();
 	Socket->Bind(srcPort);

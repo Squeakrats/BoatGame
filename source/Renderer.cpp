@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "GL/glew.h"
+#define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/mat4x4.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -55,7 +56,7 @@ void Renderer::Render(StrongSceneNodePtr node, int width, int height, unsigned i
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(program);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glm::mat4 perspective = glm::perspective(90.0f, (float)width / (float) height, 1.0f, 100.0f);
+	glm::mat4 perspective = glm::perspective((float)M_PI/2.0f, (float)width / (float) height, 1.0f, 100.0f);
 	glm::mat4 camera = glm::translate(glm::mat4(1.0), glm::vec3(0,0, -60));
 	glm::mat4 mvMatrix = perspective * camera;
 	Push();

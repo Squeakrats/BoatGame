@@ -5,6 +5,7 @@
 #include "stdlib.h"
 #include <string.h>//watwatwat
 
+
 bool UDPSocket::Init(void) {
 	mSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (mSocket < 0){
@@ -46,43 +47,30 @@ bool UDPSocket::SetBlocking(bool blocking) {
 	}
 	return true;
 }
-/*
-bool UDPSocket::Send(const char* message, int messageLen) {
-	send(mSocket, message, messageLen, 0);
-	return true;// this could be wrong? ;/
-}
-*/
 
-//optimize a lot of this stuff. 
-bool UDPSocket::Send(unsigned int eventId, const char* message, int messageLen, const char* ip, short port) {
+bool UDPSocket::Send(unsigned int eventId, const char* message, int messageLen, sockaddr_in* address) {
 	QueueItem item;
 	item.reliable = 0;
-	item.packetId = 0;
+	item.packetId = mCurrentPacketId++;//this maybe. not sure
 	item.eventId = eventId;
 	memcpy(item.buffer, message, messageLen);
 	item.numBytes = messageLen;
-
-	item.address.sin_family = AF_INET;
-	inet_pton(AF_INET, ip, &(item.address.sin_addr));
-	item.address.sin_port = htons(port);
+	item.address = *address;
 	sendto(mSocket, (const char*) &item, sizeof(unsigned int) * 3 + item.numBytes, 0, (sockaddr*) &item.address, sizeof(item.address));
 	return true;
 }
 
-//silly approach not sending data untill first bit of data is recieved. Silly. fine for now. 
-bool UDPSocket::SendReliable(unsigned int eventId, const char* message, int messageLen, const char* ip, short port) {
+bool UDPSocket::SendReliable(unsigned int eventId, const char* message, int messageLen, sockaddr_in* address) {
 	QueueItem* item = new QueueItem();
 	item->reliable = 1;
 	item->packetId = mCurrentPacketId++;
 	item->eventId = 0;
 	memcpy(item->buffer, message, messageLen);
 	item->numBytes = messageLen;
-	item->timeStamp = time(0);
+	item->timeStamp = std::chrono::high_resolution_clock::now();
 	//new UDPSocket<udp::reliable
 	
-	item->address.sin_family = AF_INET;
-	inet_pton(AF_INET, ip, &(item->address.sin_addr));
-	item->address.sin_port = htons(port);
+	item->address = *address;
 
 	if (!mReliableQueue[item->address.sin_addr.s_addr].size()){
 		item->lastTry = item->timeStamp;
@@ -92,6 +80,27 @@ bool UDPSocket::SendReliable(unsigned int eventId, const char* message, int mess
 	mReliableQueue[item->address.sin_addr.s_addr].push(item);
 	return true;
 }
+
+
+//optimize a lot of this stuff. 
+bool UDPSocket::Send(unsigned int eventId, const char* message, int messageLen, const char* ip, short port) {
+	sockaddr_in address;
+	address.sin_family = AF_INET;
+	address.sin_port = htons(port);
+	inet_pton(AF_INET, ip, &address.sin_addr);
+	return Send(eventId, message, messageLen, &address);;
+}
+
+
+//silly approach not sending data untill first bit of data is recieved. Silly. fine for now. 
+bool UDPSocket::SendReliable(unsigned int eventId, const char* message, int messageLen, const char* ip, short port) {
+	sockaddr_in address;
+	address.sin_family = AF_INET;
+	address.sin_port = htons(port);
+	inet_pton(AF_INET, ip, &address.sin_addr);
+	return SendReliable(eventId, message, messageLen, &address);
+}
+
 
 void UDPSocket::PollEvents(void) {
 	QueueItem item;
@@ -141,14 +150,17 @@ void UDPSocket::PollEvents(void) {
 	for (auto itr : mReliableQueue){
 		if (itr.second.size()){
 			QueueItem* item = itr.second.front();
-			if (item->numTries == 0 || difftime(time(0), item->lastTry)){
-				item->lastTry = time(0);
+			auto now = std::chrono::high_resolution_clock::now();
+			if (item->numTries == 0 || std::chrono::duration_cast<std::chrono::milliseconds>(now - item->lastTry).count() > 400){
+				std::cout << "Failed to send packet, trying again...." << std::endl;
+				item->lastTry = now;
 				item->numTries +=1;
 				sendto(mSocket, (const char*) item, sizeof(unsigned int) * 3 + item->numBytes, 0, (sockaddr*) &item->address, sizeof(item->address));
 			}
 
 			if (item->numTries > 10){
-				printf("I think we failed to send this guy. ABORT ABORT ABORT. :(\n");
+				printf("Lost Connection To Server. :(\n");
+				exit(1);
 			}
 
 

@@ -1,16 +1,23 @@
 CXX=clang++
-FLAGS=-std=c++11
-LIBRARIES=-lGLEW -lGLU -lGL -lXrandr -lXi -lXrender -ldrm -lXdamage -lXxf86vm -lXext -lX11 -lpthread  -lGLEW -lglfw3 -lassimp
-LIBRARY_PATH=-L../libs/lib 
-INCLUDE_PATHS=-I../source/ -I../libs/include/
-
+FLAGS=-std=c++11 -v
+INC_PATHS=-I../source -I../libs/include
+LIB_PATHS=-L../libs/lib 
+LIBS=-lGLEW -lGLU -lGL -lassimp -ldrm -lpthread -lXi -lXrandr -lXrender  -lXdamage -lXxf86vm -lXext -lX11 -lglfw3
 SOURCES=$(wildcard ../source/*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 
-all : boatgame 
+all : client server nettest
 
-boatgame : $(OBJECTS) main.cpp
-	$(CXX) $(FLAGS) $(OBJECTS) main.cpp -o boatgame $(INCLUDE_PATHS) $(LIBRARY_PATH) $(LIBRARIES)
 
-../source/%.o : ../source/%.cpp
-	$(CXX) $(FLAGS) -c $< -o $@ $(INCLUDE_PATHS) $(LIBRARY_PATH) $(LIBRARIES)
+client : $(OBJECTS) client.cpp
+	$(CXX) $(FLAGS) $(OBJECTS) client.cpp -o ../bin/client $(INC_PATHS) $(LIB_PATHS) $(LIBS) 
+
+server : $(OBJECTS) server.cpp
+	$(CXX) $(FLAGS) $(OBJECTS) server.cpp -o ../bin/server $(INC_PATHS) $(LIB_PATHS) $(LIBS) 
+
+nettest : $(OBJECTS) nettest.cpp
+	$(CXX) $(FLAGS) $(OBJECTS) nettest.cpp -o ../bin/nettest $(INC_PATHS) $(LIB_PATHS) $(LIBS) 
+
+../source/%.o : ../source/%.cpp ../source/%.h
+	$(CXX) $(FLAGS) -c $< -o $@ $(INC_PATHS)
+

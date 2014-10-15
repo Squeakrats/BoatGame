@@ -1,4 +1,5 @@
 #pragma once
+#define GLM_FORCE_RADIANS
 #include "glm/mat4x4.hpp"
 #include "Mesh.h"
 #include <vector>

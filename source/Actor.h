@@ -3,13 +3,13 @@
 #include <map>
 #include "ActorComponent.h"
 #include "Emitter.h"
+#define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 
 class Actor;
 class EventData;
 typedef std::shared_ptr<Actor> StrongActorPtr;
 typedef std::map<unsigned int, StrongActorComponentPtr> ComponentMap;
-
 class Actor : public Emitter<EventData*> {
 private:
 	ComponentMap mComponentMap;

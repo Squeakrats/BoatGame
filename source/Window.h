@@ -10,7 +10,6 @@ struct WindowEvent {
 
 //possibly make a non propegating emitter? 
 
-
 //right now assume one window per thingy
 class Window : public Emitter<WindowEvent*> {
 private:

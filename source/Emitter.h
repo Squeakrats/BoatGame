@@ -39,3 +39,39 @@ public:
 		}
 	}
 };
+
+template<>
+class Emitter<void> {
+	typedef std::function<void(void)> callback;
+	typedef std::shared_ptr<Emitter<void>> StrongEmitterPtr;
+	typedef std::weak_ptr<Emitter<void>> WeakEmitterPtr;
+
+protected:
+	std::map<unsigned int, std::list<callback>> mListeners;
+	WeakEmitterPtr mParent;
+public:
+	Emitter(void){};
+
+	void SetParent(StrongEmitterPtr parent) {
+		mParent = parent;
+	}
+
+	void On(unsigned int id, callback function) {
+		mListeners[id].push_back(function);
+	}
+
+	void Emit(unsigned int id) {
+		auto itr = mListeners.find(id);
+		if (itr != mListeners.end()){
+			auto list = itr->second;
+			for (auto function : list) {
+				function();
+			}
+		}
+		
+		StrongEmitterPtr parent = mParent.lock();
+		if (parent != nullptr) {
+			parent->Emit(id);
+		}
+	}
+};

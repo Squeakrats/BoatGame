@@ -1,4 +1,5 @@
 #pragma once
+#define GLM_FORCE_RADIANS
 #include <glm/gtc/type_ptr.hpp>
 #include "assimp/scene.h"
 #include "assimp/matrix4x4.h"

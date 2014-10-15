@@ -1,15 +1,17 @@
 #pragma once
 
-
-#include "sys/socket.h"
-#include "netinet/in.h"
-
-#include "Emitter.h"
 #include <string>
 #include <sstream>
 #include <map>
 #include <queue>
 #include <time.h>
+#include <chrono>
+
+#include "sys/socket.h"
+#include "netinet/in.h"
+
+#include "Emitter.h"
+
 //prob should optimize thos.
 struct SocketEvent {
 	char* buffer;
@@ -35,8 +37,8 @@ struct QueueItem {
 	char buffer[500];
 	sockaddr_in address;
 	unsigned int numBytes;
-	time_t timeStamp;
-	time_t lastTry;
+	std::chrono::time_point<std::chrono::high_resolution_clock> timeStamp;
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastTry;
 	int numTries;
 };
 
@@ -57,9 +59,11 @@ public:
 	bool Bind(unsigned int);
 	bool Connect(const char*, unsigned int);
 	//bool Send(const char*, int);
+	bool Send(unsigned int, const char*, int, sockaddr_in*);
 	bool Send(unsigned int, const char*, int, const char*, short);
 
 	bool SendReliable(unsigned int, const char*, int, const char*, short);
+	bool SendReliable(unsigned int, const char*, int, sockaddr_in*);
 	void PollEvents(void);
 	//PollEvents :P
 

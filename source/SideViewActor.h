@@ -1,5 +1,6 @@
 #pragma once
 #include "Actor.h"
+#define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/mat4x4.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -11,9 +12,10 @@ class SideViewActor : public Actor {
 private:
 
 public:
-	bool mMovingForward;
-	bool mTurningLeft;
-	bool mTurningRight;
+	bool mbMovingForward;
+	bool mbTurningLeft;
+	bool mbTurningRight;
+	bool mbIsMovementPredicted;
 	//assume that all players are built properly :/
 	void MoveLeft(float x) {
 		glm::vec3 newPosition = GetPosition();

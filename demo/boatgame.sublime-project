@@ -1,0 +1,21 @@
+{
+	"folders":
+	[
+		{
+			"path": "/home/yusef/Documents/boatgame"
+		}
+	],
+	"build_systems":
+    [
+        {
+            "name": "Make",
+            "cmd": [ "make" ],
+            "working_dir": "${project_path}"
+        }
+    ],
+    "sublimeclang_options":
+         [
+             "-I${project_path}/../source",
+             "-I${project_path}/../libs/include"
+         ]
+}

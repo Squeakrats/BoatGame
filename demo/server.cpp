@@ -4,7 +4,8 @@
 #include <thread>
 #include <chrono>
 #include "string.h"
-
+#include "sys/socket.h"
+#include "netinet/in.h"
 
 
 #include "Actor.h"
@@ -28,49 +29,56 @@ struct GameUpdateActor {
 	float rx, ry, rz;
 };
 
+
 StrongSideViewActorPtr actors[2];
+//std::vector<sockaddr_in> 
 void handleSocketInput(SocketEvent& event){
-	std::cout << "Got client input" << std::endl;
 	int state;// = (int) event.buffer;
 	memcpy(&state, event.buffer, sizeof(state));
 
 	StrongSideViewActorPtr& actor = actors[0];//(ntohs(event.address.sin_port) == 1337) ? actors[0] : actors[1];
 	
 	if (state & SET_MOVING_FORWARD_TRUE){
-		actor->mMovingForward = true;
+		actor->mbMovingForward = true;
 	}
 
 	if (state & SET_MOVING_FORWARD_FALSE){
-		actor->mMovingForward = false;
+		actor->mbMovingForward = false;
 	}
 
 	if (state & SET_TURNING_LEFT_TRUE){
-		actor->mTurningLeft = true;
+		actor->mbTurningLeft = true;
 	}
 
 	if (state & SET_TURNING_LEFT_FALSE){
-		actor->mTurningLeft = false;
+		actor->mbTurningLeft = false;
 	}
 
 	if (state & SET_TURNING_RIGHT_TRUE){
-		actor->mTurningRight = true;
+		actor->mbTurningRight = true;
 	}
 
 	if (state & SET_TURNING_RIGHT_FALSE){
-		actor->mTurningRight = false;
+		actor->mbTurningRight = false;
 	}
 }
-
-
+/*
+UDPSocket needs to get cleaned up a lot
+1) culling for timestamps > lastaccepted Timestamp
+2) fix the mess with double sends/SendReliable 
+*/
 int main(int argc, char*argv[]) {
-
-	int BindTo = 1337;
-	int sendTo = 1337;
+	if(argc < 3){
+		std::cout << "Seriously 2 args man" << std::endl;
+		exit(1);
+	}
+	int bindTo = atoi(argv[1]);
+	int sendTo = atoi(argv[2]);
 
 	UDPSocket* udp = new UDPSocket();
 	udp->Init();
 	udp->SetBlocking(false);
-	udp->Bind(BindTo);
+	udp->Bind(bindTo);
 	udp->On(0, handleSocketInput);
 
 	for (int i = 0; i < 2; i++){
@@ -90,16 +98,16 @@ int main(int argc, char*argv[]) {
 			for (int i = 0; i < 2; i++){
 				StrongSideViewActorPtr& actor = actors[i];
 				if (actor != nullptr){
-					if (actor->mMovingForward){
+					if (actor->mbMovingForward){
 						actor->MoveForward(2);
 					}
 
-					if (actor->mTurningLeft){
-						actor->RotateZ(2);
+					if (actor->mbTurningLeft){
+						actor->RotateZ(.2);
 					}
 
-					if (actor->mTurningRight){
-						actor->RotateZ(-2);
+					if (actor->mbTurningRight){
+						actor->RotateZ(-.2);
 					}
 				}
 			}
@@ -121,13 +129,13 @@ int main(int argc, char*argv[]) {
 				actorStruct.z = actorPosition.z;
 				actorStruct.rx = actorRotation.x;
 				actorStruct.ry = actorRotation.y;
-				actorStruct.rz = actorRotation.z;
+				actorStruct.rz = actorRotation.z;	
 				memcpy(buffer + sizeof(numActors) + sizeof(GameUpdateActor) * i, &actorStruct, sizeof(GameUpdateActor));
 
 			}
 			//generic send to these 2 places. 
 			udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "24.240.35.26", sendTo);
-			//udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", sendTo);
+			udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", sendTo);
 			//std::cout << actorRotation.x << actorRotation.y << actorRotation.z << std::endl;
 		}
 	}
