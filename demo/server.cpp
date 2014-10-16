@@ -28,12 +28,14 @@ struct GameUpdateActor {
 StrongSideViewActorPtr actors[2];
 int actorStates[2]; //this should prob be part of the recieving controller class?
 std::map<long, sockaddr_in> addresses;
+std::map<long, unsigned int> lastPackets;
 void handleSocketInput(SocketEvent& event){
 	int state;// = (int) event.buffer;
 	memcpy(&state, event.buffer, sizeof(state));
 	StrongSideViewActorPtr& actor = actors[0];//(ntohs(event.address.sin_port) == 1337) ? actors[0] : actors[1];
 	//this needs to discard if its an older packet tho. srsly :/ er wait idk, 
 	actorStates[0] = state;
+	lastPackets[event.item->address.sin_addr.s_addr] = event.item->packetId;
 }
 
 void OnClientConnect(SocketEvent& event){
@@ -115,17 +117,16 @@ int main(int argc, char*argv[]) {
 				actorStruct.rx = actorRotation.x;
 				actorStruct.ry = actorRotation.y;
 				actorStruct.rz = actorRotation.z;	
-				memcpy(buffer + sizeof(numActors) + sizeof(GameUpdateActor) * i, &actorStruct, sizeof(GameUpdateActor));
-
+				memcpy(buffer + 2 * sizeof(unsigned int) + sizeof(GameUpdateActor) * i, &actorStruct, sizeof(GameUpdateActor));
 			}
+
+
 
 			for(auto kv : addresses){
-				udp->Send(0, buffer, sizeof(unsigned int) * numActors * sizeof(GameUpdateActor), &kv.second);
+				//update the last packet id
+				memcpy(buffer + sizeof(unsigned int), &lastPackets[kv.first], sizeof(unsigned int));
+				udp->Send(0, buffer, 2 * sizeof(unsigned int) + numActors * sizeof(GameUpdateActor), &kv.second);
 			}
-			//generic send to these 2 places. 
-			//udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "24.240.35.26", sendTo);
-			//udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", sendTo);
-			//std::cout << actorRotation.x << actorRotation.y << actorRotation.z << std::endl;
 		}
 	}
 }

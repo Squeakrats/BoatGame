@@ -50,8 +50,9 @@ protected:
 	Packet mBuffer;
 	std::map<long int, std::queue<QueueItem*>> mReliableQueue;
 	std::map<long int, unsigned int> mLastPacketRecieved;
-	unsigned int mCurrentPacketId = 1;
+	
 public:
+	unsigned int mCurrentPacketId = 1;//tmp public
 	UDPSocket(){};
 	
 	bool Init(void);

@@ -42,5 +42,7 @@ void Controller::KeyCallback(WindowEvent* event) {
 }
 
 void Controller::Send(UDPSocket* socket) {
+	StateBufferItem item = { socket->mCurrentPacketId, state};
+	stateBuffer.push_back(item);
 	socket->Send(0, (const char*)&state, sizeof(state), &mServerAddress);
 }

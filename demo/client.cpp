@@ -43,6 +43,7 @@ StrongSideViewActorPtr createClientSideViewActor(unsigned int id, StrongMeshPtr 
 UDPSocket* udp;
 StrongSideViewActorPtr actors[2];
 StrongSideViewActorPtr controlledActor;
+StrongControllerPtr controller;
 
 struct GameUpdateActor {
 	unsigned int actorId;
@@ -56,52 +57,57 @@ void OnServerFrameUpdate(SocketEvent& event) {
 		return;
 	}
 	LAST_PACKET_ID = event.item->packetId;
+	//std::cout << controller
 	unsigned int numActors;
 	memcpy(&numActors, event.buffer, sizeof(unsigned int));
+	unsigned int lastPacketId;
+	memcpy(&lastPacketId, event.buffer + sizeof(unsigned int), sizeof(unsigned int));
+
+
 	GameUpdateActor* actorStructs = new GameUpdateActor[numActors];
-	memcpy(actorStructs, event.buffer + sizeof(unsigned int), sizeof(GameUpdateActor) * numActors);
-
-	for (int i = 0; i < numActors; i++){
-		StrongSideViewActorPtr actor = actors[i];
-		GameUpdateActor& actorStruct = actorStructs[i];
-
-		const glm::vec3& currPos = actor->GetPosition();
-		const glm::vec3& currRot = actor->GetRotation();
-
-		glm::vec3 newPos = glm::vec3(actorStruct.x, actorStruct.y, actorStruct.z);
-		glm::vec3 newRot = glm::vec3(actorStruct.rx, actorStruct.ry, actorStruct.rz);
-
-		if(actor->mbIsMovementPredicted){
-
-			glm::vec3 posDif = newPos - currPos;
-			glm::vec3 rotDif = newRot - currRot;
-
-			if(glm::length(posDif) < .5f){
-				actor->SetPosition(newPos);
-			}else{
-				std::cout << "Bad Predictions dude" << std::endl;
-				glm::vec3 corrected = currPos + .10f * posDif;
-				actor->SetPosition(corrected);
-			}
-
-			if(glm::length(rotDif) < .5f){
-				actor->SetRotation(newRot);
-			}else{
-				std::cout << "Bad Predictions dude" << std::endl;
-				glm::vec3 corrected = currRot + .10f * rotDif;
-				actor->SetRotation(corrected);
-			}
+	memcpy(actorStructs, event.buffer + 2 * sizeof(unsigned int), sizeof(GameUpdateActor) * numActors);
 
 
 
-
-		}else{
-			//this is the only thing that is going on. 
-			actor->SetPosition(newPos);
-			actor->SetRotation(newRot);
+	bool allOld = true;
+	for(auto itr = controller->stateBuffer.begin(); itr != controller->stateBuffer.end(); ++itr){
+		if(itr->packetId > lastPacketId){
+			controller->stateBuffer.erase(controller->stateBuffer.begin(), itr);
+			allOld = false;
+			break;
 		}
-
 	}
+
+	if(allOld){
+		controller->stateBuffer.clear();
+	}
+
+	//set the server position
+	glm::vec3 newPos = glm::vec3(actorStructs[0].x, actorStructs[0].y, actorStructs[0].z);
+	glm::vec3 newRot = glm::vec3(actorStructs[0].rx, actorStructs[0].ry, actorStructs[0].rz);
+	glm::vec3 oldPos = actors[0]->GetPosition();
+	glm::vec3 oldRot = actors[0]->GetRotation();
+
+	//std::cout << newPos.x << " " << newPos.y << " " << newPos.z << std::endl;
+
+	actors[0]->SetPosition(newPos);
+	actors[0]->SetRotation(newRot);
+
+///*
+	for(auto item : controller->stateBuffer){
+		if(item.state & MOVING_FORWARD){
+			actors[0]->MoveForward(2);
+		}
+		if(item.state & TURNING_LEFT) {
+			actors[0]->RotateZ(.2);
+		}
+		if(item.state & TURNING_RIGHT) {
+			actors[0]->RotateZ(-.2);
+		}
+	}
+//*/
+	//do some correcting after that?????? lerp the dif. 
+	
 
 	delete actorStructs;
 } 
@@ -133,7 +139,7 @@ int main(int argc, char* argv[]) {
 	const aiScene* aiscene = importer.ReadFile("assets/models/garvey-work-boat.dae", 0);
 	StrongMeshPtr boatMesh = MeshFactory::ConvertAiScene(aiscene);
 
-	StrongControllerPtr controller(new Controller());
+	controller = StrongControllerPtr(new Controller());
 	controller->Initialize(&window);
 	controller->SetServer(serverIP, serverPort);
 
@@ -142,6 +148,7 @@ int main(int argc, char* argv[]) {
 	actors[1] = createClientSideViewActor(1, boatMesh);
 	scene->AddChild(actors[0]->GetComponent<MeshComponent>(1));
 	scene->AddChild(actors[1]->GetComponent<MeshComponent>(1));
+	actors[0]->mbIsMovementPredicted = true;
 
 
 	UDPSocket* udp = new UDPSocket();
@@ -160,6 +167,24 @@ int main(int argc, char* argv[]) {
 
 		if (dt.count() > 17) { //temo run server and double fps
 			last = now;
+
+			//maybe???
+			StrongSideViewActorPtr actor = actors[0];
+			int actorState = controller->state;
+			if (actor != nullptr){
+				if(actorState & MOVING_FORWARD){
+					actor->MoveForward(2);
+				}
+				if(actorState & TURNING_LEFT) {
+					actor->RotateZ(.2);
+				}
+				if(actorState & TURNING_RIGHT) {
+					actor->RotateZ(-.2);
+				}
+			}
+
+
+
 			udp->PollEvents();
 			renderer.Render(scene, width, height, program);
 			window.SwapBuffers();
@@ -170,3 +195,49 @@ int main(int argc, char* argv[]) {
 	};
 
 }
+
+
+/*
+for (int i = 0; i < numActors; i++){
+		StrongSideViewActorPtr actor = actors[i];
+		GameUpdateActor& actorStruct = actorStructs[i];
+
+		const glm::vec3& currPos = actor->GetPosition();
+		const glm::vec3& currRot = actor->GetRotation();
+
+		glm::vec3 newPos = glm::vec3(actorStruct.x, actorStruct.y, actorStruct.z);
+		glm::vec3 newRot = glm::vec3(actorStruct.rx, actorStruct.ry, actorStruct.rz);
+
+		if(actor->mbIsMovementPredicted){
+
+			glm::vec3 posDif = newPos - currPos;
+			glm::vec3 rotDif = newRot - currRot;
+
+			if(glm::length(posDif) < .15f || false){
+				actor->SetPosition(newPos);
+			}else{
+				std::cout << "Bad Predictions dude" << std::endl;
+				glm::vec3 corrected = currPos + .25f * posDif;
+				actor->SetPosition(corrected);
+			}
+
+			if(glm::length(rotDif) < .15f || false){
+				actor->SetRotation(newRot);
+			}else{
+				std::cout << "Bad Predictions dude" << std::endl;
+				glm::vec3 corrected = currRot + .25f * rotDif;
+				actor->SetRotation(corrected);
+			}
+
+
+
+
+		}else{
+			//this is the only thing that is going on. 
+			actor->SetPosition(newPos);
+			actor->SetRotation(newRot);
+		}
+
+	}
+
+*/
