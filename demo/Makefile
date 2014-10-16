@@ -12,8 +12,8 @@ all : client server nettest
 client : $(OBJECTS) client.cpp
 	$(CXX) $(FLAGS) $(OBJECTS) client.cpp -o ../bin/client $(INC_PATHS) $(LIB_PATHS) $(LIBS) 
 
-server : $(OBJECTS) server.cpp
-	$(CXX) $(FLAGS) $(OBJECTS) server.cpp -o ../bin/server $(INC_PATHS) $(LIB_PATHS) $(LIBS) 
+server : ../source/Actor.o ../source/SideViewActor.o ../source/UDPSocket.o server.cpp
+	$(CXX) $(FLAGS) ../source/Actor.o ../source/SideViewActor.o ../source/UDPSocket.o server.cpp -o ../bin/server $(INC_PATHS)
 
 nettest : $(OBJECTS) nettest.cpp
 	$(CXX) $(FLAGS) $(OBJECTS) nettest.cpp -o ../bin/nettest $(INC_PATHS) $(LIB_PATHS) $(LIBS) 
