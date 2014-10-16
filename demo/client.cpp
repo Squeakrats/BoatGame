@@ -72,7 +72,7 @@ void OnServerFrameUpdate(SocketEvent& event) {
 	bool allOld = true;
 	for(auto itr = controller->stateBuffer.begin(); itr != controller->stateBuffer.end(); ++itr){
 		if(itr->packetId > lastPacketId){
-			controller->stateBuffer.erase(controller->stateBuffer.begin(), itr);
+			controller->stateBuffer.erase(controller->stateBuffer.begin(), --itr);
 			allOld = false;
 			break;
 		}
@@ -105,8 +105,14 @@ void OnServerFrameUpdate(SocketEvent& event) {
 			actors[0]->RotateZ(-.2);
 		}
 	}
+
+	//glm::vec3 posDif = newPos - oldPos;
+	//glm::vec3 rotDif = newRot - oldPos;
+
+
 //*/
 	//do some correcting after that?????? lerp the dif. 
+
 	
 
 	delete actorStructs;
@@ -164,9 +170,10 @@ int main(int argc, char* argv[]) {
 	while (!window.ShouldClose()){
 		auto now = std::chrono::high_resolution_clock::now();
 		auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
-
-		if (dt.count() > 17) { //temo run server and double fps
+		double leftovers = 0;
+		if (dt.count() + leftovers >= 17) { //temo run server and double fps
 			last = now;
+			leftovers = (dt.count() + leftovers) - 17;
 
 			//maybe???
 			StrongSideViewActorPtr actor = actors[0];

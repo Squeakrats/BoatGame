@@ -79,9 +79,10 @@ int main(int argc, char*argv[]) {
 
 		auto now = std::chrono::high_resolution_clock::now();
 		auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
-
-		if (dt.count() > 17) { //temo run server and double fps
+		double leftovers = 0;
+		if (dt.count() + leftovers >= 17) { //temo run server and double fps
 			last = now;
+			leftovers = (dt.count() + leftovers) - 17;
 
 			for (int i = 0; i < 2; i++){
 				StrongSideViewActorPtr& actor = actors[i];
