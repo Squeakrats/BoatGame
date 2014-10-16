@@ -43,7 +43,7 @@
 			"file": "Makefile",
 			"settings":
 			{
-				"buffer_size": 764,
+				"buffer_size": 771,
 				"line_ending": "Unix"
 			}
 		},
@@ -97,12 +97,11 @@
 	},
 	"expanded_folders":
 	[
-		"/home/yusef/Documents/boatgame",
-		"/home/yusef/Documents/boatgame/demo",
-		"/home/yusef/Documents/boatgame/source"
+		"/home/yusef/Documents/boatgame"
 	],
 	"file_history":
 	[
+		"/home/squeakrats/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
 		"/home/yusef/Documents/boatgame/source/Emitter.h",
 		"/home/yusef/Documents/boatgame/source/UDPSocket.cpp",
 		"/home/yusef/Documents/boatgame/source/UDPSocket.h",
@@ -147,7 +146,7 @@
 	],
 	"find":
 	{
-		"height": 0.0
+		"height": 25.0
 	},
 	"find_in_files":
 	{
@@ -191,15 +190,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 764,
+						"buffer_size": 771,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								68,
-								68
+								545,
+								545
 							]
 						],
 						"settings":
@@ -226,8 +225,8 @@
 						"selection":
 						[
 							[
-								333,
-								333
+								355,
+								355
 							]
 						],
 						"settings":
@@ -236,7 +235,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 2295.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -247,7 +246,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 0.0
+		"height": 25.0
 	},
 	"input":
 	{
@@ -287,7 +286,7 @@
 	"project": "boatgame.sublime-project",
 	"replace":
 	{
-		"height": 0.0
+		"height": 46.0
 	},
 	"save_all_on_build": true,
 	"select_file":

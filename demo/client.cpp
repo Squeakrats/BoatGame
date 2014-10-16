@@ -100,10 +100,6 @@ void OnServerFrameUpdate(SocketEvent& event) {
 	delete actorStructs;
 } 
 
-
-
-
-
 void onSetMovingForwardTrue(void) {
 	actors[0]->mbMovingForward = true;
 }
@@ -132,7 +128,6 @@ void onSetTurningRightFalse(void) {
 
 
 int main(int argc, char* argv[]) {
-
 	if(argc < 4){
 		std::cout << "Seriously 3 args man" << std::endl;
 		exit(1);
@@ -175,7 +170,10 @@ int main(int argc, char* argv[]) {
 	udp->Init();
 	udp->SetBlocking(false);
 	udp->Bind(bindTo);
+
 	udp->On(0, OnServerFrameUpdate);
+	std::cout << "connecting to server...." << std::endl;
+	udp->SendReliable(1, "hello!", sizeof("hello!"), serverIP, serverPort);
 
 	while (!window.ShouldClose()){
 		udp->PollEvents();

@@ -64,12 +64,10 @@ bool UDPSocket::SendReliable(unsigned int eventId, const char* message, int mess
 	QueueItem* item = new QueueItem();
 	item->reliable = 1;
 	item->packetId = mCurrentPacketId++;
-	item->eventId = 0;
+	item->eventId = eventId;
 	memcpy(item->buffer, message, messageLen);
 	item->numBytes = messageLen;
-	item->timeStamp = std::chrono::high_resolution_clock::now();
-	//new UDPSocket<udp::reliable
-	
+	item->timeStamp = std::chrono::high_resolution_clock::now();	
 	item->address = *address;
 
 	if (!mReliableQueue[item->address.sin_addr.s_addr].size()){
@@ -104,11 +102,10 @@ bool UDPSocket::SendReliable(unsigned int eventId, const char* message, int mess
 
 void UDPSocket::PollEvents(void) {
 	QueueItem item;
-	sockaddr_in sender;
-	unsigned int senderSize = sizeof(sender);
+	unsigned int senderSize = sizeof(sockaddr_in);
 
 	while (1){
-		int numBytes = recvfrom(mSocket, (char*) &item, sizeof(QueueItem), 0, (sockaddr*)&sender, &senderSize);
+		int numBytes = recvfrom(mSocket, (char*) &item, sizeof(QueueItem), 0, (sockaddr*)&item.address, &senderSize);
 		if (numBytes <= 0){
 			break;
 		}
@@ -116,15 +113,14 @@ void UDPSocket::PollEvents(void) {
 		item.numBytes = numBytes - sizeof(unsigned int) * 3;
 
 		if (!item.reliable){
-			SocketEvent event = { item.buffer, (int)item.numBytes, sender };
+			SocketEvent event = { item.buffer,  &item };
 			Emit(item.eventId, event);
 		}
 		else{
 			if (item.eventId == 111){
-				QueueItem* front =  mReliableQueue[sender.sin_addr.s_addr].front();
+				QueueItem* front =  mReliableQueue[item.address.sin_addr.s_addr].front();
 				if (item.packetId == front->packetId){
-					mReliableQueue[sender.sin_addr.s_addr].pop();
-					//printf("ACK: %u\n", item.packetId);
+					mReliableQueue[item.address.sin_addr.s_addr].pop();
 					delete front;
 				}
 				
@@ -132,11 +128,11 @@ void UDPSocket::PollEvents(void) {
 			else{
 				ACK ack;
 				ack.packetId = item.packetId;
-				sendto(mSocket, (const char*) &ack, sizeof(ack), 0, (const sockaddr*) &sender, sizeof(sender));
-				if (item.packetId > mLastPacketRecieved[sender.sin_addr.s_addr]){
+				sendto(mSocket, (const char*) &ack, sizeof(ack), 0, (const sockaddr*) &item.address, senderSize);
+				if (item.packetId > mLastPacketRecieved[item.address.sin_addr.s_addr]){
 					//std::cout << item.packetId << std::endl;
-					mLastPacketRecieved[sender.sin_addr.s_addr] = item.packetId;
-					SocketEvent event = { item.buffer, (int)item.numBytes, sender };
+					mLastPacketRecieved[item.address.sin_addr.s_addr] = item.packetId;
+					SocketEvent event = { item.buffer, &item };
 					Emit(item.eventId, event);
 				}
 				

@@ -12,12 +12,6 @@
 
 #include "Emitter.h"
 
-//prob should optimize thos.
-struct SocketEvent {
-	char* buffer;
-	int numBytes;
-	sockaddr_in address;
-};
 
 struct Packet {
 	unsigned int eventId;
@@ -40,6 +34,12 @@ struct QueueItem {
 	std::chrono::time_point<std::chrono::high_resolution_clock> timeStamp;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastTry;
 	int numTries;
+};
+
+//prob should optimize thos.
+struct SocketEvent {
+	char* buffer;
+	QueueItem* item; //not sure why item.
 };
 
 class UDPSocket : public Emitter<SocketEvent&> {

@@ -1,21 +1,25 @@
 {
+	"build_systems":
+	[
+		{
+			"cmd":
+			[
+				"make"
+			],
+			"name": "Make",
+			"working_dir": "${project_path}"
+		}
+	],
 	"folders":
 	[
 		{
-			"path": "/home/yusef/Documents/boatgame"
+			"follow_symlinks": true,
+			"path": "/home/squeakrats/Documents/boatgame"
 		}
 	],
-	"build_systems":
-    [
-        {
-            "name": "Make",
-            "cmd": [ "make" ],
-            "working_dir": "${project_path}"
-        }
-    ],
-    "sublimeclang_options":
-         [
-             "-I${project_path}/../source",
-             "-I${project_path}/../libs/include"
-         ]
+	"sublimeclang_options":
+	[
+		"-I${project_path}/../source",
+		"-I${project_path}/../libs/include"
+	]
 }

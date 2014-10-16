@@ -6,6 +6,7 @@
 #include "string.h"
 #include "sys/socket.h"
 #include "netinet/in.h"
+#include <arpa/inet.h>
 
 
 #include "Actor.h"
@@ -31,7 +32,7 @@ struct GameUpdateActor {
 
 
 StrongSideViewActorPtr actors[2];
-//std::vector<sockaddr_in> 
+std::map<long, sockaddr_in> addresses;
 void handleSocketInput(SocketEvent& event){
 	int state;// = (int) event.buffer;
 	memcpy(&state, event.buffer, sizeof(state));
@@ -62,24 +63,33 @@ void handleSocketInput(SocketEvent& event){
 		actor->mbTurningRight = false;
 	}
 }
+
+void OnClientConnect(SocketEvent& event){
+	char ip[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &event.item->address.sin_addr, ip, INET_ADDRSTRLEN);
+	addresses[event.item->address.sin_addr.s_addr] = event.item->address;
+	std::cout << "Client Connected, IP: " <<  ip << " Port: " << ntohs(event.item->address.sin_port) <<  std::endl;
+}
 /*
 UDPSocket needs to get cleaned up a lot
 1) culling for timestamps > lastaccepted Timestamp
 2) fix the mess with double sends/SendReliable 
+3) make event loop the same timing system. 
+4) create a connect message. 
 */
 int main(int argc, char*argv[]) {
-	if(argc < 3){
-		std::cout << "Seriously 2 args man" << std::endl;
+	if(argc < 2){
+		std::cout << "Seriously 1 args man" << std::endl;
 		exit(1);
 	}
 	int bindTo = atoi(argv[1]);
-	int sendTo = atoi(argv[2]);
 
 	UDPSocket* udp = new UDPSocket();
 	udp->Init();
 	udp->SetBlocking(false);
 	udp->Bind(bindTo);
 	udp->On(0, handleSocketInput);
+	udp->On(1, OnClientConnect);
 
 	for (int i = 0; i < 2; i++){
 		actors[i] = StrongSideViewActorPtr(new SideViewActor());
@@ -133,9 +143,13 @@ int main(int argc, char*argv[]) {
 				memcpy(buffer + sizeof(numActors) + sizeof(GameUpdateActor) * i, &actorStruct, sizeof(GameUpdateActor));
 
 			}
+
+			for(auto kv : addresses){
+				udp->Send(0, buffer, sizeof(unsigned int) * numActors * sizeof(GameUpdateActor), &kv.second);
+			}
 			//generic send to these 2 places. 
-			udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "24.240.35.26", sendTo);
-			udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", sendTo);
+			//udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "24.240.35.26", sendTo);
+			//udp->Send(0, buffer, sizeof(unsigned int) +numActors * sizeof(GameUpdateActor), "127.0.0.1", sendTo);
 			//std::cout << actorRotation.x << actorRotation.y << actorRotation.z << std::endl;
 		}
 	}

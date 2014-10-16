@@ -1,8 +1,8 @@
 CXX=clang++
-FLAGS=-std=c++11 -v
+FLAGS=-std=c++11
 INC_PATHS=-I../source -I../libs/include
 LIB_PATHS=-L../libs/lib 
-LIBS=-lGLEW -lGLU -lGL -lassimp -ldrm -lpthread -lXi -lXrandr -lXrender  -lXdamage -lXxf86vm -lXext -lX11 -lglfw3
+LIBS=-lGLEW -lGLU -lGL -lXrandr -lXi -lXrender -ldrm -lXdamage -lXxf86vm -lXext -lX11 -lpthread  -lGLEW -lglfw3 -lassimp
 SOURCES=$(wildcard ../source/*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 
