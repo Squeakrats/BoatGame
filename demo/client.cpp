@@ -71,7 +71,7 @@ void OnServerFrameUpdate(SocketEvent& event) {
 
 	bool allOld = true;
 	for(auto itr = controller->stateBuffer.begin(); itr != controller->stateBuffer.end(); ++itr){
-		if(itr->packetId > lastPacketId){
+		if(itr->packetId >= lastPacketId){
 			controller->stateBuffer.erase(controller->stateBuffer.begin(), --itr);
 			allOld = false;
 			break;
@@ -106,8 +106,14 @@ void OnServerFrameUpdate(SocketEvent& event) {
 		}
 	}
 
-	//glm::vec3 posDif = newPos - oldPos;
-	//glm::vec3 rotDif = newRot - oldPos;
+	glm::vec3 posDif = newPos - oldPos;
+	glm::vec3 rotDif = newRot - oldPos;
+
+	glm::vec3 corrected = oldPos + .10f * posDif;
+	if(glm::length(posDif) > .10f){
+		actors[0]->SetPosition(corrected);
+	}
+	
 
 
 //*/
@@ -171,6 +177,7 @@ int main(int argc, char* argv[]) {
 		auto now = std::chrono::high_resolution_clock::now();
 		auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
 		double leftovers = 0;
+		udp->PollEvents();
 		if (dt.count() + leftovers >= 17) { //temo run server and double fps
 			last = now;
 			leftovers = (dt.count() + leftovers) - 17;
@@ -192,7 +199,7 @@ int main(int argc, char* argv[]) {
 
 
 
-			udp->PollEvents();
+			
 			renderer.Render(scene, width, height, program);
 			window.SwapBuffers();
 			window.PollEvents();
