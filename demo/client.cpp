@@ -53,7 +53,7 @@ struct GameUpdateActor {
 
 unsigned int LAST_PACKET_ID;
 void OnServerFrameUpdate(SocketEvent& event) {
-	if(event.item->packetId < LAST_PACKET_ID){
+	if(event.item->packetId <= LAST_PACKET_ID){
 		return;
 	}
 	LAST_PACKET_ID = event.item->packetId;
@@ -68,17 +68,18 @@ void OnServerFrameUpdate(SocketEvent& event) {
 	memcpy(actorStructs, event.buffer + 2 * sizeof(unsigned int), sizeof(GameUpdateActor) * numActors);
 
 
-
+//	std::cout << lastPacketId << std::endl;
 	bool allOld = true;
 	for(auto itr = controller->stateBuffer.begin(); itr != controller->stateBuffer.end(); ++itr){
-		if(itr->packetId >= lastPacketId){
-			controller->stateBuffer.erase(controller->stateBuffer.begin(), --itr);
+		if(itr->packetId > lastPacketId){
+			controller->stateBuffer.erase(controller->stateBuffer.begin(), itr);
 			allOld = false;
 			break;
 		}
 	}
 
 	if(allOld){
+		std::cout << "CLEAR!" << std::endl;
 		controller->stateBuffer.clear();
 	}
 
@@ -107,11 +108,16 @@ void OnServerFrameUpdate(SocketEvent& event) {
 	}
 
 	glm::vec3 posDif = newPos - oldPos;
-	glm::vec3 rotDif = newRot - oldPos;
+	glm::vec3 rotDif = newRot - oldRot;
 
-	glm::vec3 corrected = oldPos + .10f * posDif;
-	if(glm::length(posDif) > .10f){
-		actors[0]->SetPosition(corrected);
+	
+	if(glm::length(posDif) > .20f){
+		//glm::vec3 corrected = oldPos + .20f * posDif;
+		//actors[0]->SetPosition(corrected);
+	}
+	if(glm::length(rotDif) > .10f){
+		//glm::vec3 corrected = oldRot + .40f * rotDif;
+		//actors[0]->SetRotation(corrected);
 	}
 	
 
@@ -177,12 +183,14 @@ int main(int argc, char* argv[]) {
 		auto now = std::chrono::high_resolution_clock::now();
 		auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
 		double leftovers = 0;
-		udp->PollEvents();
+		
 		if (dt.count() + leftovers >= 17) { //temo run server and double fps
 			last = now;
 			leftovers = (dt.count() + leftovers) - 17;
 
 			//maybe???
+			///*
+			
 			StrongSideViewActorPtr actor = actors[0];
 			int actorState = controller->state;
 			if (actor != nullptr){
@@ -195,15 +203,16 @@ int main(int argc, char* argv[]) {
 				if(actorState & TURNING_RIGHT) {
 					actor->RotateZ(-.2);
 				}
-			}
-
+			}//*/
+			controller->Send(udp);
+			udp->PollEvents();
 
 
 			
 			renderer.Render(scene, width, height, program);
 			window.SwapBuffers();
 			window.PollEvents();
-			controller->Send(udp);
+			
 
 		}
 	};

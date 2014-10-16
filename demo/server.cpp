@@ -30,6 +30,9 @@ int actorStates[2]; //this should prob be part of the recieving controller class
 std::map<long, sockaddr_in> addresses;
 std::map<long, unsigned int> lastPackets;
 void handleSocketInput(SocketEvent& event){
+	if(lastPackets[event.item->address.sin_addr.s_addr] > event.item->packetId){
+		return;
+	}
 	int state;// = (int) event.buffer;
 	memcpy(&state, event.buffer, sizeof(state));
 	StrongSideViewActorPtr& actor = actors[0];//(ntohs(event.address.sin_port) == 1337) ? actors[0] : actors[1];
@@ -42,6 +45,7 @@ void OnClientConnect(SocketEvent& event){
 	char ip[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &event.item->address.sin_addr, ip, INET_ADDRSTRLEN);
 	addresses[event.item->address.sin_addr.s_addr] = event.item->address;
+	lastPackets[event.item->address.sin_addr.s_addr] = 0;
 	std::cout << "Client Connected, IP: " <<  ip << " Port: " << ntohs(event.item->address.sin_port) <<  std::endl;
 }
 /*
