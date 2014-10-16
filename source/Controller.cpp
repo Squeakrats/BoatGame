@@ -14,43 +14,33 @@ void Controller::Initialize(Window* window) {
 void Controller::KeyCallback(WindowEvent* event) {
 	if (event->key == GLFW_KEY_W){
 		if (event->action == GLFW_PRESS){
-			state |= SET_MOVING_FORWARD_TRUE;
-			Emit(SET_MOVING_FORWARD_TRUE);
+			state |= MOVING_FORWARD;
 		}
 		else if (event->action == GLFW_RELEASE){
-			state |= SET_MOVING_FORWARD_FALSE;
-			Emit(SET_MOVING_FORWARD_FALSE);
+			state &= ~(MOVING_FORWARD);
 		}
 	}
 
 	if (event->key == GLFW_KEY_LEFT){
 		if (event->action == GLFW_PRESS){
-			state |= SET_TURNING_LEFT_TRUE;
-			Emit(SET_TURNING_LEFT_TRUE);
+			state |= TURNING_LEFT;
 		}
 		else if (event->action == GLFW_RELEASE){
-			state |= SET_TURNING_LEFT_FALSE;
-			Emit(SET_TURNING_LEFT_FALSE);
+			state &= ~(TURNING_LEFT);
 		}
 	}
 
 	if (event->key == GLFW_KEY_RIGHT){
 		if (event->action == GLFW_PRESS){
-			state |= SET_TURNING_RIGHT_TRUE;
-			Emit(SET_TURNING_RIGHT_TRUE);
+			state |= TURNING_RIGHT;
 		}
 		else if (event->action == GLFW_RELEASE){
-			state |= SET_TURNING_RIGHT_FALSE;
-			Emit(SET_TURNING_RIGHT_FALSE);
+			state &= ~(TURNING_RIGHT);
 		}
 	}
 
 }
 
 void Controller::Send(UDPSocket* socket) {
-	if (state){
-		//super temp.
-		socket->SendReliable(0, (const char*)&state, sizeof(state), &mServerAddress);
-		state = 0;
-	}
+	socket->Send(0, (const char*)&state, sizeof(state), &mServerAddress);
 }

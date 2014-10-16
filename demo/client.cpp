@@ -50,7 +50,12 @@ struct GameUpdateActor {
 	float rx, ry, rz;
 };
 
+unsigned int LAST_PACKET_ID;
 void OnServerFrameUpdate(SocketEvent& event) {
+	if(event.item->packetId < LAST_PACKET_ID){
+		return;
+	}
+	LAST_PACKET_ID = event.item->packetId;
 	unsigned int numActors;
 	memcpy(&numActors, event.buffer, sizeof(unsigned int));
 	GameUpdateActor* actorStructs = new GameUpdateActor[numActors];
@@ -91,6 +96,7 @@ void OnServerFrameUpdate(SocketEvent& event) {
 
 
 		}else{
+			//this is the only thing that is going on. 
 			actor->SetPosition(newPos);
 			actor->SetRotation(newRot);
 		}
@@ -100,34 +106,15 @@ void OnServerFrameUpdate(SocketEvent& event) {
 	delete actorStructs;
 } 
 
-void onSetMovingForwardTrue(void) {
-	actors[0]->mbMovingForward = true;
-}
 
-void onSetMovingForwardFalse(void) {
-	actors[0]->mbMovingForward = false;
-}
-	
-void onSetTurningLeftTrue(void) {
-	actors[0]->mbTurningLeft = true;
-}
-
-void onSetTurningLeftFalse(void) {
-	actors[0]->mbTurningLeft = false;
-}
-
-void onSetTurningRightTrue(void) {
-	actors[0]->mbTurningRight = true;
-}
-
-void onSetTurningRightFalse(void) {
-	actors[0]->mbTurningRight = false;
-}
-
-
-
+/*
+no more sendReliable for key inputs. that shit needs to be spammed.
+work on slidey formulas. they need considerable tweakin. 
+already totally ignoring old messages. 
+*/
 
 int main(int argc, char* argv[]) {
+	LAST_PACKET_ID = 0;
 	if(argc < 4){
 		std::cout << "Seriously 3 args man" << std::endl;
 		exit(1);
@@ -156,15 +143,6 @@ int main(int argc, char* argv[]) {
 	scene->AddChild(actors[0]->GetComponent<MeshComponent>(1));
 	scene->AddChild(actors[1]->GetComponent<MeshComponent>(1));
 
-	actors[0]->mbIsMovementPredicted = false;
-
-	controller->On(SET_MOVING_FORWARD_TRUE, onSetMovingForwardTrue);
-	controller->On(SET_MOVING_FORWARD_FALSE, onSetMovingForwardFalse);
-	controller->On(SET_TURNING_LEFT_TRUE, onSetTurningLeftTrue);
-	controller->On(SET_TURNING_LEFT_FALSE, onSetTurningLeftFalse);
-	controller->On(SET_TURNING_RIGHT_TRUE, onSetTurningRightTrue);
-	controller->On(SET_TURNING_RIGHT_FALSE, onSetTurningRightFalse);
-
 
 	UDPSocket* udp = new UDPSocket();
 	udp->Init();
@@ -175,32 +153,20 @@ int main(int argc, char* argv[]) {
 	std::cout << "connecting to server...." << std::endl;
 	udp->SendReliable(1, "hello!", sizeof("hello!"), serverIP, serverPort);
 
+	auto last = std::chrono::high_resolution_clock::now();
 	while (!window.ShouldClose()){
-		udp->PollEvents();
-/*
-		for (int i = 0; i < 2; i++){
-				StrongSideViewActorPtr& actor = actors[i];
-				if (actor != nullptr){
-					if (actor->mbMovingForward){
-						actor->MoveForward(2);
-					}
+		auto now = std::chrono::high_resolution_clock::now();
+		auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
 
-					if (actor->mbTurningLeft){
-						actor->RotateZ(2);
-					}
+		if (dt.count() > 17) { //temo run server and double fps
+			last = now;
+			udp->PollEvents();
+			renderer.Render(scene, width, height, program);
+			window.SwapBuffers();
+			window.PollEvents();
+			controller->Send(udp);
 
-					if (actor->mbTurningRight){
-						actor->RotateZ(-2);
-					}
-				}
-			}/*/
-
-		renderer.Render(scene, width, height, program);
-		window.SwapBuffers();
-		window.PollEvents();
-		controller->Send(udp);
-		std::this_thread::sleep_for(std::chrono::milliseconds(17));
-
+		}
 	};
 
 }

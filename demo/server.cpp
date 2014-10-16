@@ -14,15 +14,9 @@
 #include "UDPSocket.h"
 
 
-const int SET_MOVING_FORWARD_TRUE = (1 << 0);
-const int SET_MOVING_FORWARD_FALSE = (1 << 1);
-
-const int SET_TURNING_LEFT_TRUE = (1 << 2);
-const int SET_TURNING_LEFT_FALSE= (1 << 3);
-
-const int SET_TURNING_RIGHT_TRUE = (1 << 4);
-const int SET_TURNING_RIGHT_FALSE = (1 << 5);
-
+const int MOVING_FORWARD = (1 << 0);
+const int TURNING_LEFT = (1 << 1);
+const int TURNING_RIGHT = (1 << 2);
 
 struct GameUpdateActor {
 	unsigned int actorId;
@@ -32,36 +26,14 @@ struct GameUpdateActor {
 
 
 StrongSideViewActorPtr actors[2];
+int actorStates[2]; //this should prob be part of the recieving controller class?
 std::map<long, sockaddr_in> addresses;
 void handleSocketInput(SocketEvent& event){
 	int state;// = (int) event.buffer;
 	memcpy(&state, event.buffer, sizeof(state));
-
 	StrongSideViewActorPtr& actor = actors[0];//(ntohs(event.address.sin_port) == 1337) ? actors[0] : actors[1];
-	
-	if (state & SET_MOVING_FORWARD_TRUE){
-		actor->mbMovingForward = true;
-	}
-
-	if (state & SET_MOVING_FORWARD_FALSE){
-		actor->mbMovingForward = false;
-	}
-
-	if (state & SET_TURNING_LEFT_TRUE){
-		actor->mbTurningLeft = true;
-	}
-
-	if (state & SET_TURNING_LEFT_FALSE){
-		actor->mbTurningLeft = false;
-	}
-
-	if (state & SET_TURNING_RIGHT_TRUE){
-		actor->mbTurningRight = true;
-	}
-
-	if (state & SET_TURNING_RIGHT_FALSE){
-		actor->mbTurningRight = false;
-	}
+	//this needs to discard if its an older packet tho. srsly :/ er wait idk, 
+	actorStates[0] = state;
 }
 
 void OnClientConnect(SocketEvent& event){
@@ -78,11 +50,14 @@ UDPSocket needs to get cleaned up a lot
 4) create a connect message. 
 */
 int main(int argc, char*argv[]) {
-	if(argc < 2){
-		std::cout << "Seriously 1 args man" << std::endl;
-		exit(1);
+
+	int bindTo = 1337;
+	if(argc > 1){
+		bindTo = atoi(argv[1]);
 	}
-	int bindTo = atoi(argv[1]);
+
+	printf("Listening on port %i\n", bindTo);
+	
 
 	UDPSocket* udp = new UDPSocket();
 	udp->Init();
@@ -105,18 +80,18 @@ int main(int argc, char*argv[]) {
 
 		if (dt.count() > 17) { //temo run server and double fps
 			last = now;
+
 			for (int i = 0; i < 2; i++){
 				StrongSideViewActorPtr& actor = actors[i];
+				int actorState = actorStates[i];
 				if (actor != nullptr){
-					if (actor->mbMovingForward){
+					if(actorState & MOVING_FORWARD){
 						actor->MoveForward(2);
 					}
-
-					if (actor->mbTurningLeft){
+					if(actorState & TURNING_LEFT) {
 						actor->RotateZ(.2);
 					}
-
-					if (actor->mbTurningRight){
+					if(actorState & TURNING_RIGHT) {
 						actor->RotateZ(-.2);
 					}
 				}
