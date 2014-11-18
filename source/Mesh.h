@@ -10,6 +10,7 @@
 #include "glm/glm.hpp"
 #include <memory>
 #include <iostream>
+#include "Material.h"
 
 
 class Mesh;
@@ -41,8 +42,10 @@ private:
 	unsigned int* mBuffers;
 	unsigned int mNumBuffers;
 	unsigned int mNumVertices;
+	unsigned int mNumIndices;
+	StrongMaterialPtr mMaterial;
 public:
-	SubMesh(unsigned int numBuffers) {
+	SubMesh(unsigned int numBuffers) {//this is weird having half the data here and half the data not. 
 		mNumBuffers = numBuffers;
 		mBuffers = new unsigned int[mNumBuffers];
 		glGenVertexArrays(1, &mVAO);

@@ -8,6 +8,7 @@
 #include <iostream>
 #define _USE_MATH_DEFINES
 #include <math.h>
+
 Renderer::Renderer(void) : mMatrix(1.0f) {};
 
 void Renderer::Push() {
@@ -37,11 +38,15 @@ void Renderer::RenderNode(StrongSceneNodePtr node) {
 void Renderer::RenderMesh(StrongMeshPtr mesh) {
 	Push();
 	mMatrix *= mesh->mMatrix;
-	glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mMatrix));
+	
 
+	//assumes the mesh has a material. 
 	for (auto submesh : mesh->mMeshes) {
+		submesh->mMaterial->PreRender();
+		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mMatrix));
 		glBindVertexArray(submesh->mVAO);
-		glDrawArrays(GL_TRIANGLES, 0, submesh->mNumVertices);
+		//glDrawArrays(GL_TRIANGLES, 0, submesh->mNumVertices);
+		glDrawElements(GL_TRIANGLES, submesh->mNumIndices, GL_UNSIGNED_INT, nullptr);
 		
 	}
 
@@ -63,4 +68,5 @@ void Renderer::Render(StrongSceneNodePtr node, int width, int height, unsigned i
 	mMatrix = mvMatrix;
 	RenderNode(node);
 	Pop();
+	//glBindVertexArray(0);
 }
